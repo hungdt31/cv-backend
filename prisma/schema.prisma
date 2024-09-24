@@ -17,20 +17,20 @@ datasource db {
 }
 
 model User {
-  id           Int       @id @default(autoincrement())
-  email        String    @unique
+  id           Int        @id @default(autoincrement())
+  email        String     @unique
   password     String
   phone        String?
-  name         String?   @map("first_name")
-  status       Int?      @db.SmallInt
+  name         String?
+  status       Int?       @db.SmallInt
   age          Int?
-  gender       String?
+  gender       String?    @default("unknown")
   address      String?
   refreshToken String?
-  role         Role      @relation(fields: [roleId], references: [id])
-  roleId       Int
-  createAt     DateTime? @default(now())
-  updateAt     DateTime? @updatedAt
+  role         Role?      @relation(fields: [roleId], references: [id])
+  roleId       Int?
+  createAt     DateTime?  @default(now())
+  updateAt     DateTime?  @updatedAt
 }
 
 model Permission {

@@ -4,59 +4,93 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
+// import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { TransformInterceptor } from './core/transform.interceptor';
-import { Reflector } from '@nestjs/core';
-import { AuthGuard } from '@nestjs/passport';
-import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import cookieParser from 'cookie-parser';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  const configService = app.get(ConfigService);
-  //metadata =>public/private
-  const reflector = app.get(Reflector);
-  app.useStaticAssets(join(__dirname, '..', 'public'));
-  app.setBaseViewsDir(join(__dirname, '..', 'views'));
-  app.setViewEngine('ejs');
-  const port = configService.get('PORT');
-
-  // config cookie
-  app.use(cookieParser());
-
-  //config auth guard
-  app.useGlobalGuards(new JwtAuthGuard(reflector));
-
-  //config interceptor
-  app.useGlobalInterceptors(new TransformInterceptor(reflector));
-  //config validate
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true, // chi validate nhung key thuộc dto những key k có sẽ bị bỏ qua nếu truyền dư
-    }),
+  const app = await NestFactory.create<NestExpressApplication>(
+    AppModule,
   );
 
-  //config cors
+  // config service for env
+  const configService = app.get(ConfigService);
+
+  // config validation pipe
+  app.useGlobalPipes(new ValidationPipe({
+    whitelist: true,
+  }));
+  
+  // truyền metadata vào lobal guard
+  const reflector = app.get('Reflector');
+  // app.useGlobalGuards(new JwtAuthGuard(reflector));
+  app.useGlobalInterceptors(new TransformInterceptor(reflector));
+
+  // config cookie parser
+  app.use(cookieParser());
+
+  // config cors
   app.enableCors({
     origin: true,
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    preflightContinue: false,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    allowedHeaders: 'Content-Type, Accept',
     credentials: true,
   });
 
-  //config version
+  // config versioning
   app.setGlobalPrefix('api');
   app.enableVersioning({
     type: VersioningType.URI,
-    defaultVersion: ['1', '2'],
+    defaultVersion: ['1','2']
   });
-  //config swagger
+  app.useStaticAssets(join(__dirname, '..', 'public')); // js, css, img, ...
+  app.setBaseViewsDir(join(__dirname, '..', 'views')); // views
+  app.setViewEngine('ejs');
+
+  // config swagger
   const config = new DocumentBuilder()
-    .setTitle('Nestjs API Documentation')
-    .setDescription('ALL module API')
-    .setVersion('1.0')
+    .setTitle('API documentation')
+    .setDescription('Restful API')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'Bearer',
+        bearerFormat: 'JWT',
+        in: 'header',
+      },
+      'token',
+    )
+    .addSecurityRequirements('token')
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
-  await app.listen(port);
+  SwaggerModule.setup(':version/swagger', app, document, {
+    patchDocumentOnRequest: (req , _res, document) => {
+      const version = (req as any).params.version;
+      // set version for builder
+      config.info.version = version;
+      // NOTE: Make a deep copy of the original document or it will be modified on subsequent calls!
+      const copyDocument = JSON.parse(JSON.stringify(document));
+      const isValidVersion = /^v[0-9]+$/;
+      if (!version || !isValidVersion.test(version)) {
+        return;
+      }
+      for (const route in document.paths) {
+        if (route.startsWith(`/api/${version}`)) {
+          continue;
+        }
+        delete copyDocument.paths[route];
+      }
+      return copyDocument;
+    },
+    swaggerOptions: {
+      persistAuthorization: true,
+    }
+  });
+
+  // start server at port ${PORT}
+  await app.listen(configService.get<string>('PORT'), () => {
+    console.log(`Server is running at http://localhost:${configService.get<string>('PORT')}`);
+  });
 }
 bootstrap();

@@ -1,68 +1,57 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  Put,
-  UseGuards,
-  Request,
-  Query,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Version, VERSION_NEUTRAL } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { UserGuard } from './user.guard';
-import { AuthGuard } from '@nestjs/passport';
-import { LocalAuthGuard } from 'src/auth/local-auth.guard';
-import { AuthService } from 'src/auth/auth.service';
-import { Public, ResponseMessage, User } from 'src/decorators/customize';
-import { IUser } from './users.interface';
+import { UseGuards } from '@nestjs/common';
+import { GetPaginateInfo, Public, ResponseMessage, User } from 'src/decorators/customize';
+import { IUser } from '../interface/users.interface';
+import { UniqueGmail } from 'src/core/gmail.guard';
+import { PaginateInfo } from 'src/interface/paginate.interface';
+import { ApiTags } from '@nestjs/swagger';
 
-@Controller('users')
+@ApiTags('users')
+@Controller({ path: 'users', version: '1' })
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
-  @ResponseMessage('create new user')
-  async create(@Body() createuserdto: CreateUserDto, @User() user: IUser) {
-    let newUser: any = await this.usersService.create(createuserdto, user);
-    return {
-      _id: newUser?._id,
-      createAt: newUser?.createdAt,
-    };
+  @UseGuards(UniqueGmail)
+  @ResponseMessage("Create a new User")
+  create(@Body() createUserDto: CreateUserDto) {
+    // tag Body = request.body
+    // @Body là một overloading decorator, nó giúp chúng ta lấy dữ liệu từ request body ở nhiều kiểu dữ liệu khác nhau 
+    // như string, number, object, array, ...
+    return this.usersService.create(createUserDto);
   }
 
-  @Public()
-  @ResponseMessage('get paginate user')
-  @Get('')
-  GetPaginate(
-    @Query('current') currentPage: number,
-    @Query('pageSize') limit: number,
-    @Query() qs: string,
+  // lấy thông tin của người dùng có phân trang
+  @Get()
+  @ResponseMessage("Get a list of users")
+  findAll(
+    @GetPaginateInfo() info: PaginateInfo
   ) {
-    return this.usersService.GetPaginate(currentPage, limit, qs);
+    return this.usersService.findAll(info);
   }
 
-  @ResponseMessage('get by id')
+  // lấy thông tin của 1 người dùng
+  @Public()
   @Get(':id')
+  @ResponseMessage("Get a user")
   findOne(@Param('id') id: string) {
-    return this.usersService.findOne(id);
+    return this.usersService.findOne(+id);
   }
 
-  @ResponseMessage('update user')
-  @Patch('')
-  async update(@Body() updateUserDto: UpdateUserDto, @User() user: IUser) {
-    let updateUser: any = await this.usersService.update(updateUserDto, user);
-    return updateUser;
+  // chỉnh sửa thông tin người dùng
+  @Patch(':id')
+  @ResponseMessage("Update a user")
+  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+    return this.usersService.update(+id, updateUserDto);
   }
 
-  @ResponseMessage('delete user')
+  // đưa một người dùng vào thùng rác
   @Delete(':id')
-  async remove(@Param('id') id: string) {
-    let deleteuser: any = await this.usersService.remove(id);
-    return deleteuser;
+  @ResponseMessage("Take a user to trash")
+  remove(@Param('id') id: string) {
+    return this.usersService.remove(+id);
   }
 }
