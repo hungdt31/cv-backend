@@ -3,13 +3,13 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { IUser } from 'src/interface/users.interface';
-// import { RolesService } from 'src/roles/roles.service';
+import { RolesService } from 'src/roles/roles.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     private readonly configService: ConfigService,
-    // private readonly roleService: RolesService
+    private readonly roleService: RolesService
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -23,15 +23,15 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     const { id, email, name, role } = payload;
     
     // get permissions from role
-    const userRole = role as unknown as { id: number, name: string };
-    // const foundRole = await this.roleService.findOne(userRole.id);
+    let foundRole = null
+    if (role?.id) foundRole = await this.roleService.findOne(role.id);
 
     return { 
       id, 
       email, 
       name,
       role,
-      // permissions: foundRole?.permissions ?? []
+      permissions: foundRole?.permission ?? []
     };
   }
 }

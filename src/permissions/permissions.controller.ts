@@ -1,12 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { PermissionsService } from './permissions.service';
 import { CreatePermissionDto } from './dto/create-permission.dto';
 import { UpdatePermissionDto } from './dto/update-permission.dto';
-import { GetPaginateInfo, ResponseMessage, User } from 'src/decorators/customize';
+import { GetPaginateInfo, ResponseMessage } from 'src/decorators/customize';
 import { ExistPermission } from 'src/core/permission.guard';
-import { IUser } from 'src/interface/users.interface';
+import { CheckValidId } from 'src/core/id.guard';
 import { PaginateInfo } from 'src/interface/paginate.interface';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags, ApiQuery } from '@nestjs/swagger';
+import { CheckQueryForPagination } from 'src/core/query.guard';
 
 @ApiTags('permissions')
 @Controller({ path: 'permissions', version: '1' })
@@ -22,7 +23,12 @@ export class PermissionsController {
     return this.permissionsService.create(createPermissionDto);
   }
 
+
+  // lấy thông tin permission có phân trang
   @Get()
+  @ApiQuery({ name: 'page', required: false, description: "default: 1", type: Number })
+  @ApiQuery({ name: 'limit', required: false, description: "default: 10", type: Number })
+  @UseGuards(CheckQueryForPagination)
   @ResponseMessage("Fetch list of permissions with pagination")
   findByPagination(
     @GetPaginateInfo() info: PaginateInfo
@@ -31,12 +37,14 @@ export class PermissionsController {
   }
 
   @Get(':id')
+  @UseGuards(CheckValidId)
   @ResponseMessage('Get permission successfully')
   findOne(@Param('id') id: string) {
     return this.permissionsService.findOne(+id);
   }
 
   @Patch(':id')
+  @UseGuards(CheckValidId)
   @ResponseMessage('Update permission successfully')
   update(
     @Param('id') id: string, 
@@ -46,6 +54,7 @@ export class PermissionsController {
   }
 
   @Delete(':id')
+  @UseGuards(CheckValidId)
   @ResponseMessage('Remove permission successfully')
   remove(
     @Param('id') id: string

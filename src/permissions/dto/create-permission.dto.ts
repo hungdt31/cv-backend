@@ -1,4 +1,4 @@
-import { IsEnum, IsNotEmpty } from "class-validator"
+import { IsEnum, IsNotEmpty, IsNumber } from "class-validator"
 import { ApiProperty } from "@nestjs/swagger"
 
 enum Method {
@@ -35,4 +35,7 @@ export class CreatePermissionDto {
   @IsNotEmpty()
   @IsEnum(Module)
   module: string 
+
+  @IsNumber()
+  roleId: number
 }

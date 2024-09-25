@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreatePermissionDto } from './dto/create-permission.dto';
 import { UpdatePermissionDto } from './dto/update-permission.dto';
 import { PrismaService } from 'prisma/prisma.service';
@@ -50,12 +50,21 @@ export class PermissionsService {
     };
   }
 
-  async findOne(id: number) {
-    return await this.prismaService.permission.findFirst({
+  async findPermissionById(id: number) {
+    const res = await this.prismaService.permission.findFirst({
       where: {
         id
-      }
-    });
+      },
+    })
+    return res;
+  }
+
+  async findOne(id: number) {
+    const res = await this.findPermissionById(id);
+    if (!res) {
+      throw new HttpException("Permission not found", HttpStatus.NOT_FOUND);
+    }
+    return res;
   }
 
   async checkNewValidPermission(method: string, apiPath: string) : Promise<boolean> {
@@ -70,6 +79,10 @@ export class PermissionsService {
   }
 
   async update(id: number, updatePermissionDto: UpdatePermissionDto) {
+    const res = await this.findPermissionById(id);
+    if (!res) {
+      throw new HttpException("Permission not found", HttpStatus.NOT_FOUND);
+    }
     return await this.prismaService.permission.update({
       where: {
         id
@@ -81,6 +94,10 @@ export class PermissionsService {
   }
 
   async remove(id: number) {
+    const res = await this.findPermissionById(id);
+    if (!res) {
+      throw new HttpException("Permission not found", HttpStatus.NOT_FOUND);
+    }
     return await this.prismaService.permission.delete({
       where: {
         id

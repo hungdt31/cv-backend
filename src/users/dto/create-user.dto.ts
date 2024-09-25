@@ -4,6 +4,7 @@ import {
   IsMongoId,
   IsNotEmpty,
   IsNotEmptyObject,
+  IsNumber,
   IsObject,
   IsString,
   MaxLength,
@@ -29,6 +30,8 @@ export class CreateUserDto {
   @IsNotEmpty()
   gender: string;
 
+  @IsNumber()
+  roleId: number
 }
 
 export class RefreshTokenDTO {

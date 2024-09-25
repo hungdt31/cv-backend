@@ -1,9 +1,8 @@
-import { BadRequestException, Injectable, UseGuards } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { genSaltSync, hashSync, compareSync} from 'bcryptjs';
 import { PrismaService } from 'prisma/prisma.service';
-import { IUser } from '../interface/users.interface';
 import { RegisterDto } from 'src/auth/dto/register-user.dto';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { PaginateInfo } from 'src/interface/paginate.interface';
@@ -18,6 +17,23 @@ export class UsersService {
     const salt = genSaltSync(10);
     const hashedPassword = hashSync(password, salt);
     return hashedPassword;
+  }
+
+  async findUserById(id: number) {
+    const res = await this.prismaService.user.findFirst({
+      where: {
+        id
+      },
+      // not return password
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        address: true,
+        age: true,
+      }
+    })
+    return res;
   }
 
   async create(createUserDto: CreateUserDto) {
@@ -79,19 +95,7 @@ export class UsersService {
   }
   
   async findOne(id: number) {
-    const res = await this.prismaService.user.findFirst({
-      where: {
-        id
-      },
-      // not return password
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        address: true,
-        age: true,
-      }
-    })
+    const res = await this.findUserById(id);
     if (!res) {
       throw new HttpException("User not found", HttpStatus.NOT_FOUND);
     }
@@ -115,18 +119,25 @@ export class UsersService {
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
+    const res = await this.findUserById(id);
+    if (!res) {
+      throw new HttpException("User not found", HttpStatus.NOT_FOUND);
+    }
     return this.prismaService.user.update({
       where: {
         id
       },
       data: {
-        ...updateUserDto,
-        // updateAt: new Date()
+        ...updateUserDto
       }
     })
   }
 
   async remove(id: number) {
+    const res = await this.findUserById(id);
+    if (!res) {
+      throw new HttpException("User not found", HttpStatus.NOT_FOUND);
+    }
     return await this.prismaService.user.delete({
       where: {
         id

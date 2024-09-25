@@ -7,7 +7,7 @@ import { UniqueGmail } from 'src/core/gmail.guard';
 import { Request, Response } from 'express';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { RegisterDto } from './dto/register-user.dto';
-import { UserLoginDto } from 'src/users/dto/login-user.dto';
+import { UserLoginDto } from './dto/login-user.dto';
 
 @ApiTags('auth')
 @Controller({ path: 'auth', version: '1' })

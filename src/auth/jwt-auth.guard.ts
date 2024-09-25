@@ -28,7 +28,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   }
 
   handleRequest(err : any, user : any, info: any, context: ExecutionContext) {
-    if (user.email === "admin@gmail.com" || user.name === "admin") return user;
+    if (user?.email === "admin@gmail.com" || user?.name === "admin") return user;
     const request : Request = context.switchToHttp().getRequest();
     // You can throw an exception based on either "info" or "err" arguments
     if (err || !user) {
