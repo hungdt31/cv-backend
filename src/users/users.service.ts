@@ -4,6 +4,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { genSaltSync, hashSync, compareSync} from 'bcryptjs';
 import { PrismaService } from 'prisma/prisma.service';
 import { IUser } from '../interface/users.interface';
+import { RegisterDto } from 'src/auth/dto/register-user.dto';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { PaginateInfo } from 'src/interface/paginate.interface';
 
@@ -34,15 +35,17 @@ export class UsersService {
     };
   }
 
-  // async register(registerDto: RegisterDto) {
-  //   const { password } = registerDto;
-  //   registerDto.password = this.getHashedPassword(password);
-  //   let user = await this.prismaService.usercreate({
-  //     ...registerDto
-  //   });
-  //   delete user.password;
-  //   return user;
-  // }
+  async register(registerDto: RegisterDto) {
+    const { password } = registerDto;
+    registerDto.password = this.getHashedPassword(password);
+    let user = await this.prismaService.user.create({
+      data: {
+        ...registerDto
+      }
+    });
+    delete user.password;
+    return user;
+  }
   
   async findAll(info: PaginateInfo) {
     const { offset, defaultLimit, sort, projection, population, filter, currentPage } = info;
@@ -99,6 +102,10 @@ export class UsersService {
     return await this.prismaService.user.findFirst({
       where: {
         email
+      },
+      // populate role from roleId
+      include: {
+        role: true
       }
     });
   }
@@ -142,6 +149,9 @@ export class UsersService {
     return await this.prismaService.user.findFirst({
       where: {
         refreshToken
+      },
+      include: {
+        role: true
       }
     });
   }

@@ -1,7 +1,7 @@
 export interface IUser {
-  _id: string;
+  id: number;
   name: string;
   email: string;
-  role: string;
+  role: any;
   permissions: string[];
 }

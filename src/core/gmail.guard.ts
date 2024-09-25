@@ -10,6 +10,9 @@ export class UniqueGmail implements CanActivate {
   ): Promise<any> {
     const request = context.switchToHttp().getRequest();
     const email = request.body.email;
+    if (!email) {
+      throw new BadRequestException(`Please enter your email.`);
+    }
 
     // Check if the email is unique
     const user = await this.usersService.findOneByEmail(email);
