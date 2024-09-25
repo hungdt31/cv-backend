@@ -7,6 +7,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 // import { DatabaseModule } from './database/database.module';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { AuthModule } from './auth/auth.module';
+import { PermissionsModule } from './permissions/permissions.module';
+import { RolesModule } from './roles/roles.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -20,7 +22,9 @@ import { AuthModule } from './auth/auth.module';
       },
     ]),
     UsersModule,
-    AuthModule
+    AuthModule,
+    PermissionsModule,
+    RolesModule
   ],
   controllers: [AppController],
   providers: [AppService],
