@@ -9,7 +9,7 @@
 // npx prisma studio
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = ["typedSql"]
+  // previewFeatures = ["typedSql"] this features not support for sql-server
 }
 
 datasource db {
