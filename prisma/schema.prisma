@@ -12,24 +12,27 @@ generator client {
   // previewFeatures = ["typedSql"] this features not support for sql-server
 }
 
+
+
 datasource db {
   provider = "sqlserver"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id           Int                @id @default(autoincrement())
-  email        String             @unique
-  name         String
-  phone        String?
-  address      String?
-  password     String
-  role         String
-  refreshToken String?
-  permissions  PermissionOnUser[]
-  employee     Employee?
-  employer     Employer?
-  admin        Admin?
+  id              Int                @id @default(autoincrement())
+  email           String             @unique
+  name            String
+  phone           String?
+  address         String?
+  password        String
+  role            String
+  refreshToken    String?
+  permissions     PermissionOnUser[]
+  historyStatuses HistoryStatus[]
+  employee        Employee?
+  employer        Employer?
+  admin           Admin?
 }
 
 model Permission {
@@ -82,6 +85,8 @@ model Company {
   address         String
   employers       Employer[]
   jobPosts        JobPost[]
+  logo            File?       @relation(fields: [logoId], references: [id]) 
+  logoId          Int?        @unique
 }
 
 model Evaluation {
@@ -96,13 +101,36 @@ model Evaluation {
 }
 
 model Record {
+  id              Int       @id @default(autoincrement())
+  title           String
+  description     String
+  owner           Employee  @relation(fields: [ownerId], references: [id])
+  ownerId         Int
+  historyStatuses HistoryStatus[]
+  jobPosts        JobPost[] @relation("RecordJobPosts")
+  fileCv          File      @relation(fields: [fileCvId], references: [id])
+  fileCvId        Int
+}
+
+model File {
+  id          Int      @id @default(autoincrement())
+  name        String
+  folderType  String
+  mimeType    String?
+  record      Record[]
+  company     Company?
+  jobPostId   Int?
+  jobPost     JobPost?  @relation(fields: [jobPostId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model HistoryStatus {  
   id          Int       @id @default(autoincrement())
-  title       String
-  description String
-  filePath    String
-  owner       Employee  @relation(fields: [ownerId], references: [id])
-  ownerId     Int
-  jobPosts    JobPost[] @relation("RecordJobPosts")
+  status      String
+  updatedAt   DateTime
+  updatedBy   User     @relation(fields: [updatedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updatedById Int
+  record      Record   @relation(fields: [recordId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  recordId    Int
 }
 
 model JobPost {
@@ -113,16 +141,16 @@ model JobPost {
   location    String
   skills      String
   salary      Float
-  status      String
   deadline    DateTime
   company     Company        @relation(fields: [companyId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  companyId   Int            @unique
+  companyId   Int
   evaluations Evaluation[]
   applicants  Employee[]     @relation("JobPostApplicants")
   records     Record[]       @relation("RecordJobPosts")
   employer    Employer       @relation(fields: [employerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  employerId  Int            @unique
+  employerId  Int
   tags        TagOnJobPost[]
+  covers      File[]
 }
 
 model TagOnJobPost {
