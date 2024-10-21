@@ -30,7 +30,7 @@ export class UsersService {
         email: true,
         name: true,
         address: true,
-        age: true,
+        
       }
     })
     return res;
@@ -39,16 +39,14 @@ export class UsersService {
   async create(createUserDto: CreateUserDto) {
     const hashedMyPassword = this.getHashedPassword(createUserDto.password);
     delete createUserDto.password;
-    let res = await this.prismaService.user.create({
+    let user = await this.prismaService.user.create({
      data: {
         ... createUserDto,
         password: hashedMyPassword
      }
     });
-    return {
-      _id: res.id,
-      createdAt: res.createAt,
-    };
+    delete user.password;
+    return user;
   }
 
   async register(registerDto: RegisterDto) {
@@ -108,9 +106,7 @@ export class UsersService {
         email
       },
       // populate role from roleId
-      include: {
-        role: true
-      }
+      
     });
   }
 
@@ -161,9 +157,7 @@ export class UsersService {
       where: {
         refreshToken
       },
-      include: {
-        role: true
-      }
+    
     });
   }
 }

@@ -3,11 +3,7 @@ import { Type } from "class-transformer";
 import { IsEmail, IsEnum, isNotEmpty, IsNotEmpty, IsOptional, IsInt } from "class-validator";
 
 
-enum Gender {
-  Female = "female",
-  Male = "male",
-  Unknown = "unknown"
-}
+
 export class RegisterDto {
   @ApiProperty()
   @IsEmail()
@@ -26,13 +22,6 @@ export class RegisterDto {
   @IsNotEmpty()
   address: string;
 
-  @ApiProperty()
-  @IsInt()
-  @Type(() => Number)
-  age: number;
-
-  @ApiProperty()
-  @IsEnum(Gender)
-  @IsOptional()
-  gender: string;
+  role:string;
+ 
 }

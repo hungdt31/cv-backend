@@ -86,7 +86,7 @@ export class AuthService {
     const newUser = await this.usersService.register(regiterDto);
     return {
       id: newUser?.id,
-      createAt: newUser?.createAt
+     
     };
   }
 
