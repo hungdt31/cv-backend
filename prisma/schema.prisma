@@ -26,6 +26,7 @@ model User {
   gender          String?
   age             Int?  
   avatar          File?
+  birthDate       DateTime?
   password        String
   role            String
   refreshToken    String?
@@ -49,7 +50,9 @@ model Employee {
 }
 
 model Employer {
-  specialization String?
+  hiringDate     DateTime?
+  department     String 
+  position       String
   company        Company   @relation(fields: [companyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   companyId      Int
   jobPosts       JobPost[]
