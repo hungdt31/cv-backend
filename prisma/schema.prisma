@@ -107,8 +107,9 @@ model Record {
   owner           Employee  @relation(fields: [ownerId], references: [id])
   ownerId         Int
   historyStatuses HistoryStatus[]
-  jobPosts        JobPost[] @relation("RecordJobPosts")
-  fileCv          File      @relation(fields: [fileCvId], references: [id])
+  jobId           Int
+  job             JobPost   @relation(fields: [jobId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  fileCv          File      @relation(fields: [fileCvId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   fileCvId        Int
 }
 
@@ -146,7 +147,7 @@ model JobPost {
   companyId   Int
   evaluations Evaluation[]
   applicants  Employee[]     @relation("JobPostApplicants")
-  records     Record[]       @relation("RecordJobPosts")
+  records     Record[]
   employer    Employer       @relation(fields: [employerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   employerId  Int
   tags        TagOnJobPost[]
