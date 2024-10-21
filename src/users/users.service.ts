@@ -58,6 +58,19 @@ export class UsersService {
       }
     });
     delete user.password;
+    if (user.role == 'admin') {
+      await this.prismaService.admin.create({
+        data: {
+          userId: user.id
+        }
+      })
+    } else if (user.role == 'employee') {
+      await this.prismaService.employee.create({
+        data: {
+          userId: user.id,
+        }
+      })
+    }
     return user;
   }
   

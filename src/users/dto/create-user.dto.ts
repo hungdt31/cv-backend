@@ -1,6 +1,7 @@
 import { Type } from 'class-transformer';
 import {
   IsEmail,
+  IsEnum,
   IsMongoId,
   IsNotEmpty,
   IsNotEmptyObject,
@@ -11,6 +12,7 @@ import {
   MinLength,
   ValidateNested,
 } from 'class-validator';
+import { Role } from 'utils/contants';
 
 export class CreateUserDto {
   @IsEmail()
@@ -25,11 +27,8 @@ export class CreateUserDto {
 
   address: string;
 
+  @IsEnum(Role)
   role:string;
-
- 
-
-  
 }
 
 export class RefreshTokenDTO {
