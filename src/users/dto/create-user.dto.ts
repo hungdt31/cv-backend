@@ -25,13 +25,11 @@ export class CreateUserDto {
 
   address: string;
 
-  age: number
+  role:string;
 
-  @IsNotEmpty()
-  gender: string;
+ 
 
-  @IsNumber()
-  roleId: number
+  
 }
 
 export class RefreshTokenDTO {
