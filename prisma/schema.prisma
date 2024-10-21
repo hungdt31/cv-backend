@@ -29,33 +29,12 @@ model User {
   password        String
   role            String
   refreshToken    String?
-  permissions     PermissionOnUser[]
   historyStatuses HistoryStatus[]
   employee        Employee?
   employer        Employer?
   admin           Admin?
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @default(now()) @updatedAt
-}
-
-model Permission {
-  id        Int                @id @default(autoincrement())
-  name      String
-  method    String
-  appPath   String
-  module    String
-  users     PermissionOnUser[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model PermissionOnUser {
-  userId       Int
-  permissionId Int
-  user         User       @relation(fields: [userId], references: [id])
-  permission   Permission @relation(fields: [permissionId], references: [id])
-
-  @@id([userId, permissionId]) // Composite primary key
 }
 
 model Employee {
